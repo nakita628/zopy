@@ -5,12 +5,26 @@ description = "Zod (https://zod.dev) ported to Python with the same API, backed 
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
+authors = [{ name = "nakita628" }]
+keywords = ["zod", "validation", "schema", "parsing", "json-schema", "typing"]
 classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Rust",
     "Typing :: Typed",
 ]
 dependencies = []
+
+[project.urls]
+Repository = "https://github.com/nakita628/zopy"
+Issues = "https://github.com/nakita628/zopy/issues"
 
 [build-system]
 requires = ["maturin>=1.8,<2"]

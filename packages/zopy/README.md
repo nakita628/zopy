@@ -49,13 +49,12 @@ is specific to zopy: how Zod maps onto Python.
 
 ## Installation
 
-zopy requires **Python 3.11+**. It is not published to PyPI yet; install it from the repository
-(building the Rust engine needs a [Rust toolchain](https://rustup.rs)):
+zopy requires **Python 3.11+**:
 
 ```bash
-uv add "zopy @ git+https://github.com/nakita628/zopy#subdirectory=packages/zopy"
+uv add zopy
 # or
-pip install "zopy @ git+https://github.com/nakita628/zopy#subdirectory=packages/zopy"
+pip install zopy
 ```
 
 Everything is reached through `z`:
