@@ -1,7 +1,7 @@
 [project]
 name = "zopy"
-version = "0.1.0"
-description = "Zod (https://zod.dev) ported to Python with the same API, backed by a Rust engine"
+version = "0.1.1"
+description = "Zod for Python, typed for pyright, validated by a Rust engine"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
