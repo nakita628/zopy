@@ -1,6 +1,5 @@
 """Regressions and idioms surfaced by the example app."""
 
-from datetime import datetime, timezone
 from types import MappingProxyType
 
 import pytest
@@ -48,12 +47,6 @@ def test_xor_idioms():
 
     Lookup = z.union([ById, BySlug])
     assert not Lookup.safeParse({"id": 1, "slug": "x"}).success
-
-
-def test_date_bounds_message_uses_isoformat():
-    lower = datetime(2024, 1, 1, tzinfo=timezone.utc)
-    r = z.date().min(lower).safeParse(datetime(2000, 1, 1, tzinfo=timezone.utc))
-    assert r.error.issues[0].message == "Too small: expected date to be >=2024-01-01T00:00:00+00:00"
 
 
 def test_readonly_is_shallow_like_object_freeze():

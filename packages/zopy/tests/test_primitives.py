@@ -56,6 +56,35 @@ def test_string_formats():
     assert z.nanoid().parse("V1StGXR8_Z5jdHi6B-myT")
 
 
+@pytest.mark.parametrize(
+    ("make", "valid", "invalid"),
+    [
+        (z.guid, "123e4567-e89b-12d3-a456-426614174000", "nope"),
+        (z.uuidv6, "1ef21d2f-1207-6660-8c4f-419efbd44d48", "123e4567-e89b-12d3-a456-426614174000"),
+        (z.uuidv7, "01890a5d-ac96-774b-bcce-b302099a8057", "123e4567-e89b-12d3-a456-426614174000"),
+        (z.cuid, "cjld2cjxh0000qzrmn831i7rn", "nope!"),
+        (z.cuid2, "tz4a98xxat96iws9zmbrgj3a", "Tz4a98"),
+        (z.ulid, "01ARZ3NDEKTSV4RRFFQ69G5FAV", "01ARZ3NDEKTSV4RRFFQ69G5FA"),
+        (z.xid, "9m4e2mr0ui3e8a215n4g", "9m4e2mr0ui3e8a215n4"),
+        (z.ksuid, "0ujtsYcgvSTl8PAuAdqWYSMnLOv", "short"),
+        (z.nanoid, "V1StGXR8_Z5jdHi6B-myT", "short"),
+        (z.base64, "aGVsbG8=", "aGVsbG8"),
+        (z.base64url, "aGVsbG8", "aGVsbG8="),
+        (z.hostname, "example.com", "exa mple.com"),
+        (z.jwt, "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.c2ln", "a.b"),
+        (z.url, "https://example.com", "example.com"),
+        (z.ipv4, "192.168.0.1", "256.0.0.1"),
+        (z.ipv6, "2001:db8::1", "2001:db8:::1"),
+        (z.cidrv4, "10.0.0.0/8", "10.0.0.0/33"),
+        (z.cidrv6, "2001:db8::/32", "2001:db8::/129"),
+        (z.e164, "+819012345678", "09012345678"),
+    ],
+)
+def test_string_format_accepts_and_rejects(make, valid, invalid):
+    assert make().parse(valid) == valid
+    assert make().safeParse(invalid).error.issues[0].code == "invalid_format"
+
+
 def test_number():
     assert z.number().parse(3.14) == 3.14
     assert (
