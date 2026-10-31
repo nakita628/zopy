@@ -1,3 +1,4 @@
+# pyright: reportUnnecessaryTypeIgnoreComment=true
 """Static type-inference checks. Run with ``uv run pyright packages/zopy/tests/typing``.
 
 ``reveal_type(expr, expected_text=...)`` makes pyright report an error when the
@@ -45,6 +46,10 @@ reveal_type(z.set(z.int()).readonly().parse(data), expected_text="frozenset[int]
 reveal_type(z.tuple((z.int(), z.string())).readonly().parse(data), expected_text="tuple[int, str]")
 reveal_type(z.readonly(z.array(z.string())).parse(data), expected_text="tuple[str, ...]")
 z.array(z.int()).readonly().parse(data).append(1)  # pyright: ignore[reportAttributeAccessIssue]
+z.array(z.int()).readonly().parse(data)[0] = 1  # pyright: ignore[reportIndexIssue]
+z.record(z.string(), z.int()).readonly().parse(data)["a"] = 1  # pyright: ignore[reportIndexIssue]
+z.map(z.int(), z.string()).readonly().parse(data)[1] = "a"  # pyright: ignore[reportIndexIssue]
+z.set(z.int()).readonly().parse(data).add(1)  # pyright: ignore[reportAttributeAccessIssue]
 reveal_type(z.any().readonly().parse(data), expected_text="Any")  # not a tuple: Any could be anything
 reveal_type(z.string().optional().readonly().parse(data), expected_text="str | None")
 Role.exclude(("root",))  # pyright: ignore[reportArgumentType]  -- not a member
@@ -102,6 +107,15 @@ reveal_type(acct, expected_text="Account")
 reveal_type(Account.readonly().parse(data), expected_text="Account")
 reveal_type(z.readonly(Account).parse(data), expected_text="Account")
 reveal_type(z.array(Account).readonly().parse(data), expected_text="tuple[Account, ...]")
+reveal_type(Account.readonly().parse(data).tags, expected_text="list[str]")  # shallow: fields keep their type
+
+
+class Tagged(z.Object):
+    tags = z.array(z.string()).readonly()
+
+
+reveal_type(Tagged.parse(data).tags, expected_text="tuple[str, ...]")
+Tagged.parse(data).tags.append("x")  # pyright: ignore[reportAttributeAccessIssue]
 reveal_type(acct.name, expected_text="str")
 reveal_type(acct.age, expected_text="int | None")
 reveal_type(acct.tags, expected_text="list[str]")

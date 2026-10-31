@@ -41,3 +41,15 @@ def test_brand_in_objects():
 
     account = Account.parse({"id": "123e4567-e89b-12d3-a456-426614174000", "friends": []})
     assert account.id == "123e4567-e89b-12d3-a456-426614174000"
+    assert Account.safeParse({"id": "nope", "friends": []}).success is False
+    assert (
+        Account.safeParse({"id": "123e4567-e89b-12d3-a456-426614174000", "friends": ["nope"]}).success
+        is False
+    )
+
+
+def test_brand_changes_nothing_but_the_static_type():
+    plain = z.int().nonnegative()
+    branded = plain.brand(Age)
+    assert branded.safeParse(-1).error.issues == plain.safeParse(-1).error.issues
+    assert z.toJSONSchema(branded) == z.toJSONSchema(plain)
