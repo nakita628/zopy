@@ -35,10 +35,6 @@ jobs:
   test:
     name: Test (Python ${{ matrix.python }})
     runs-on: ubuntu-latest
-    env:
-      # cargo test links against libpython. Some runner Pythons ship without it, so use only
-      # uv-managed Pythons, which include it.
-      UV_PYTHON_PREFERENCE: only-managed
     strategy:
       fail-fast: false
       matrix:
@@ -57,6 +53,11 @@ jobs:
         run: uv python pin ${{ matrix.python }}
       - name: Install workspace
         run: uv sync --locked
+      # pyo3 caches where libpython is and re-reads it only when PYO3_PYTHON changes, so a target/
+      # restored by rust-cache could link against a Python that has since moved. Naming the real
+      # interpreter makes a new location or patch release rebuild that config.
+      - name: Point pyo3 at the interpreter
+        run: uv run python -c 'import os, sys; print("PYO3_PYTHON=" + os.path.realpath(sys.executable))' >> "$GITHUB_ENV"
       - name: Test (pytest on both engines, cargo test)
         run: uv run just test
       - name: Run the examples
