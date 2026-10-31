@@ -1,0 +1,87 @@
+# uv workspace root (not a package itself). `uv sync` installs every member editable.
+[project]
+name = "zopy-workspace"
+version = "0.0.0"
+requires-python = ">=3.11"
+dependencies = ["zopy", "examples", "bench"]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/*", "apps/*"]
+
+[tool.uv.sources]
+zopy = { workspace = true }
+examples = { workspace = true }
+bench = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "actionlint-py>=1.7.12.25",
+    "maturin>=1.8,<2",
+    "pyright>=1.1.400",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.8",
+    "rust-just>=1.59.0",
+    "zizmor>=1.31.1",
+]
+
+# ---------------------------------------------------------------- ruff
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-exclude = ["target"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "A",    # flake8-builtins
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+    "PIE",  # flake8-pie
+    "PT",   # flake8-pytest-style
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "E501",  # line length is handled by the formatter
+    "E741",  # `l` / `I` are fine in a Zod port
+    "B904",  # `raise ... from` is not always wanted when re-raising validation errors
+    "UP007", # keep `Optional` / `Union` where they read better
+    "UP017",
+    "N806",  # schemas are PascalCase values, as in Zod (`const User = z.object(...)`)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# The public API mirrors Zod's camelCase names (`safeParse`, `keyType`, ...).
+"packages/zopy/python/zopy/__init__.py" = ["F401", "N802", "N803"]
+"packages/zopy/tests/**" = ["B018", "N802", "N803", "N815"]
+"apps/examples/**" = ["N815"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["zopy", "examples", "bench"]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+# ---------------------------------------------------------------- pyright
+[tool.pyright]
+include = ["packages/zopy/python", "packages/zopy/tests", "apps/examples/src", "apps/bench/src"]
+exclude = ["**/__pycache__", "**/.venv", "target"]
+venvPath = "."
+venv = ".venv"
+pythonVersion = "3.11"
+typeCheckingMode = "standard"
+
+# ---------------------------------------------------------------- pytest
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["packages/zopy/tests"]
+addopts = ["--strict-markers", "--strict-config"]

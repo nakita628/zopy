@@ -1,0 +1,29 @@
+[package]
+name = "zopy"
+description = "Rust validation engine (zopy._core) behind the zopy Python package"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+name = "_core"
+# cdylib: the Python extension module; rlib: lets `cargo test` run the pure-Rust unit tests.
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pyo3.workspace = true
+regex.workspace = true
+fancy-regex.workspace = true
+url.workspace = true
+base64.workspace = true
+serde_json.workspace = true
+unicode-normalization.workspace = true
+
+[build-dependencies]
+pyo3-build-config.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,38 @@
+# Keeps zopy at least as fast as the newest pydantic. The lockfile pins pydantic for local work;
+# here it is upgraded to the latest release first, and a daily run catches new pydantic releases
+# even when zopy itself has not changed.
+name: Bench
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bench:
+    name: Benchmark against the latest pydantic
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          enable-cache: true
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Install workspace with the latest pydantic
+        run: uv sync --upgrade-package pydantic --upgrade-package pydantic-core
+      - name: zopy must not be slower than pydantic in any scenario
+        # An explicit bash shell runs with pipefail, so tee keeps a failed check failing.
+        shell: bash
+        run: uv run just bench-check | tee -a "$GITHUB_STEP_SUMMARY"

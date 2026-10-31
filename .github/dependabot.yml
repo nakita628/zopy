@@ -1,0 +1,20 @@
+# Opens a PR when a new pydantic is released, so the lockfile (and local benchmarks) follow it, and
+# when an action the workflows pin (by commit SHA) has a new release. The bench workflow tests the
+# newest pydantic without waiting; the cooldown only delays these PRs past brand-new releases.
+version: 2
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: daily
+    cooldown:
+      default-days: 7
+    allow:
+      - dependency-name: pydantic
+      - dependency-name: pydantic-core
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
