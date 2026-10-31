@@ -111,7 +111,7 @@ and list-form `z.enum([...])` / `z.tuple([...])` are not: their results could on
 zopy implements Zod 4 only. Zod 3 syntax — the `message`, `required_error`,
 `invalid_type_error` and `errorMap` params, `.strict()` / `.passthrough()`, `z.string().email()`
 and the other format methods, `z.nativeEnum`, `error.format()` / `.flatten()` … — is not
-provided; the Zod 3 error params raise a `TypeError` that names the Zod 4 replacement.
+provided.
 
 ## Schemas
 
@@ -152,6 +152,7 @@ z.coerce.number().parse("4.5e2")  # => 450.0
 z.coerce.boolean().parse("false")  # => True   (truthiness, like JavaScript's Boolean())
 z.coerce.bigint().parse("99")  # => 99
 z.coerce.date().parse("2024-01-01T00:00:00Z")  # => datetime(2024, 1, 1, tzinfo=utc)
+z.coerce.date().parse(1_704_067_200_000)  # => datetime(2024, 1, 1, tzinfo=utc)  (epoch ms)
 ```
 
 ### Literals

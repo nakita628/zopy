@@ -115,15 +115,6 @@ def is_plain_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
-# Zod 3 error params and what Zod 4 (and zopy) uses instead.
-_ZOD3_PARAMS = {
-    "message": '{"error": "..."}',
-    "invalid_type_error": '{"error": lambda issue: ...} (check issue["input"])',
-    "required_error": '{"error": lambda issue: ...} (check issue["input"] is None)',
-    "errorMap": '{"error": lambda issue: ...}',
-}
-
-
 def normalize_params(params: Any = None, kwargs: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Accept ``"message"``, ``{"error": ...}`` (plus other options) or keyword arguments.
 
@@ -140,9 +131,6 @@ def normalize_params(params: Any = None, kwargs: Mapping[str, Any] | None = None
         raise TypeError(f'Invalid params: {params!r}; pass a message or {{"error": ...}}')
     if kwargs:
         out.update({k: v for k, v in kwargs.items() if v is not None})
-    for key, replacement in _ZOD3_PARAMS.items():
-        if key in out:
-            raise TypeError(f"{key!r} is Zod 3 syntax; use {replacement}")
     return out
 
 

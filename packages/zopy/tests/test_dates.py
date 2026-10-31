@@ -35,6 +35,40 @@ def test_bounds_compare_instants_across_timezones():
 
 
 @pytest.mark.parametrize(
+    ("bound", "value"),
+    [
+        (NEW_YEAR, datetime(2024, 6, 1)),  # aware bound, naive value
+        (datetime(2024, 1, 1), datetime(2024, 6, 1, tzinfo=UTC)),  # naive bound, aware value
+        (NEW_YEAR, date(2024, 6, 1)),  # datetime bound, date value
+        (date(2024, 1, 1), datetime(2024, 6, 1, tzinfo=UTC)),  # date bound, datetime value
+    ],
+)
+def test_a_value_that_cannot_be_compared_fails_the_bound(bound, value):
+    assert z.date().min(bound).safeParse(value).error.issues[0].code == "too_small"
+    assert z.date().max(bound).safeParse(value).error.issues[0].code == "too_big"
+    with pytest.raises(z.ZodError):
+        z.date().min(bound).parse(value)
+
+
+@pytest.mark.parametrize(
+    ("ms", "expected"),
+    [
+        (0, datetime(1970, 1, 1, tzinfo=UTC)),
+        (1_704_067_200_000, NEW_YEAR),
+        (1.9, datetime(1970, 1, 1, 0, 0, 0, 1000, tzinfo=UTC)),  # truncated to whole milliseconds
+        (-1, datetime(1969, 12, 31, 23, 59, 59, 999000, tzinfo=UTC)),
+    ],
+)
+def test_coerce_date_reads_numbers_as_milliseconds_like_zod(ms, expected):
+    assert z.coerce.date().parse(ms) == expected
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), 10**20])
+def test_coerce_date_rejects_numbers_out_of_range(value):
+    assert z.coerce.date().safeParse(value).error.issues[0].code == "invalid_type"
+
+
+@pytest.mark.parametrize(
     ("text", "expected"),
     [
         ("2024-01-01T00:00:00Z", NEW_YEAR),

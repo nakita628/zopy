@@ -1857,6 +1857,16 @@ fn exact_i64(v: &Bound<'_, PyAny>) -> Option<i64> {
     }
 }
 
+/// A value that cannot be compared with the bound (a naive vs an aware datetime, a date vs a
+/// datetime) fails the check, so `safeParse` reports an issue instead of raising.
+fn incomparable_fails(py: Python<'_>, e: &PyErr) -> PyResult<bool> {
+    if e.is_instance_of::<PyTypeError>(py) {
+        Ok(true)
+    } else {
+        Err(PyRuntimeError::new_err(format!("comparison failed: {e}")))
+    }
+}
+
 fn compare_lt(a: &Bound<'_, PyAny>, b: &Bound<'_, PyAny>) -> PyResult<bool> {
     if let (Some(x), Some(y)) = (exact_i64(a), exact_i64(b)) {
         return Ok(x < y);
@@ -1866,8 +1876,7 @@ fn compare_lt(a: &Bound<'_, PyAny>, b: &Bound<'_, PyAny>) -> PyResult<bool> {
             return Ok(x < y);
         }
     }
-    a.lt(b)
-        .map_err(|e| PyRuntimeError::new_err(format!("comparison failed: {e}")))
+    a.lt(b).or_else(|e| incomparable_fails(a.py(), &e))
 }
 
 fn compare_le(a: &Bound<'_, PyAny>, b: &Bound<'_, PyAny>) -> PyResult<bool> {
@@ -1879,6 +1888,5 @@ fn compare_le(a: &Bound<'_, PyAny>, b: &Bound<'_, PyAny>) -> PyResult<bool> {
             return Ok(x <= y);
         }
     }
-    a.le(b)
-        .map_err(|e| PyRuntimeError::new_err(format!("comparison failed: {e}")))
+    a.le(b).or_else(|e| incomparable_fails(a.py(), &e))
 }

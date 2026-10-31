@@ -81,7 +81,17 @@ def _size_check(
 
     def run(payload: Payload, check: Check, inst: Any) -> None:
         size = size_of(payload.value)
-        if minimum is not None and (size < minimum if inclusive else size <= minimum):
+        # A value that cannot be compared with a bound (a naive vs an aware datetime, a date vs a
+        # datetime) fails it, so safeParse reports an issue instead of raising.
+        try:
+            too_small = minimum is not None and (size < minimum if inclusive else size <= minimum)
+        except TypeError:
+            too_small = True
+        try:
+            too_big = maximum is not None and (size > maximum if inclusive else size >= maximum)
+        except TypeError:
+            too_big = True
+        if too_small:
             check.issue(
                 payload,
                 {
@@ -94,7 +104,7 @@ def _size_check(
                 },
                 inst,
             )
-        if maximum is not None and (size > maximum if inclusive else size >= maximum):
+        if too_big:
             check.issue(
                 payload,
                 {
@@ -1096,11 +1106,15 @@ def _coerce_date(value: Any) -> Any:
             except ValueError:
                 return None
     if is_plain_number(value):
+        # Milliseconds since the epoch, truncated, as JavaScript's new Date(n) reads them.
         try:
-            return _dt.datetime.fromtimestamp(value, tz=_dt.timezone.utc)
-        except (OverflowError, OSError, ValueError):
+            return _EPOCH + _dt.timedelta(milliseconds=math.trunc(value))
+        except (OverflowError, ValueError):
             return None
     return None
+
+
+_EPOCH = _dt.datetime(1970, 1, 1, tzinfo=_dt.timezone.utc)
 
 
 class ZodUndefined(ZodType[None]):

@@ -213,7 +213,7 @@ def test_custom_error_messages():
         return None
 
     assert z.string().min(5, {"error": err}).safeParse("a").error.issues[0].message == "min is 5"
-    # "required" vs "wrong type" with an error function (Zod 4's replacement for Zod 3's params)
+    # "required" vs "wrong type" with an error function
     s = z.string({"error": lambda iss: "Required!" if iss["input"] is None else "Bad type"})
     assert s.safeParse(None).error.issues[0].message == "Required!"
     assert s.safeParse(1).error.issues[0].message == "Bad type"
@@ -234,19 +234,3 @@ def test_parse_raises_zod_error():
     assert exc.value.issues[0].path == []
     assert "invalid_type" in str(exc.value)
     assert isinstance(exc.value, Exception)
-
-
-@pytest.mark.parametrize(
-    ("params", "key"),
-    [
-        ({"message": "x"}, "message"),
-        ({"required_error": "x"}, "required_error"),
-        ({"invalid_type_error": "x"}, "invalid_type_error"),
-        ({"errorMap": lambda iss: "x"}, "errorMap"),
-    ],
-)
-def test_zod3_error_params_are_rejected(params, key):
-    with pytest.raises(TypeError, match=f"'{key}' is Zod 3 syntax"):
-        z.string(params)
-    with pytest.raises(TypeError, match=f"'{key}' is Zod 3 syntax"):
-        z.string().min(1, params)
