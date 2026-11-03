@@ -10,7 +10,7 @@ fn main() {
     if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows") {
         return; // no rpath; Windows finds pythonXY.dll via PATH
     }
-    if let Some(lib_dir) = &pyo3_build_config::get().lib_dir {
+    if let Some(lib_dir) = pyo3_build_config::get().lib_dir() {
         println!("cargo:rustc-link-arg=-Wl,-rpath,{lib_dir}");
     }
 }
