@@ -1,6 +1,6 @@
 # zopy
 
-**[Zod](https://zod.dev) for Python** — the Zod 4 API, typed for Pylance / pyright, validated by a
+**[Zod](https://zod.dev) for Python** — the Zod API, typed for Pylance / pyright, validated by a
 Rust engine.
 
 ```python
@@ -107,10 +107,9 @@ and why the shape-deriving helpers (`pick`, `omit`, `partial`, `extend`, `merge`
 and list-form `z.enum([...])` / `z.tuple([...])` are not: their results could only be typed as
 `Any`. Most camelCase names also have a snake_case alias (`safe_parse`, `to_json_schema`, …).
 
-zopy implements Zod 4 only. Zod 3 syntax — the `message`, `required_error`,
-`invalid_type_error` and `errorMap` params, `.strict()` / `.passthrough()`, `z.string().email()`
-and the other format methods, `z.nativeEnum`, `error.format()` / `.flatten()` … — is not
-provided.
+The `message`, `required_error`, `invalid_type_error` and `errorMap` params, `.strict()` /
+`.passthrough()`, `z.string().email()` and the other format methods, `z.nativeEnum`,
+`error.format()` / `.flatten()` … are not provided.
 
 ## Schemas
 
@@ -191,7 +190,7 @@ z.string().normalize().parse("ｈｅｌｌｏ")  # NFC by default; .normalize("N
 
 ### String formats
 
-Formats are top-level functions, as in Zod 4.
+Formats are top-level functions, as in Zod.
 
 ```python
 z.email()
@@ -679,7 +678,7 @@ other than a label or a `NewType` (a class such as `str`, for instance) raises `
 ## Refinements
 
 `.refine(check, options)` adds a custom check: return a truthy value to accept the input. The
-options are Zod 4's:
+options are Zod's:
 
 | option | |
 |---|---|
