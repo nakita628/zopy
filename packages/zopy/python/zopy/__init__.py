@@ -105,7 +105,7 @@ from .schemas import (
     property_check,
 )
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 _T = TypeVar("_T")
 _U = TypeVar("_U")
