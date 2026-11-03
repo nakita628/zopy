@@ -264,7 +264,7 @@ impl RawIssue {
                 node_values,
             ),
         };
-        let dict = issue_type.call0()?.downcast_into::<PyDict>()?;
+        let dict = issue_type.call0()?.cast_into::<PyDict>()?;
         dict.set_item(pyo3::intern!(py, "code"), PyString::intern(py, code))?;
         let path = PyList::new(
             py,
@@ -428,7 +428,7 @@ impl<'py> State<'py> {
 
     fn merge_py_issues(&mut self, issues: &Bound<'py, PyAny>) -> PyResult<()> {
         for issue in issues.try_iter()? {
-            let issue = issue?.downcast_into::<PyDict>()?;
+            let issue = issue?.cast_into::<PyDict>()?;
             let cont = issue
                 .get_item("continue")?
                 .map(|v| v.is_truthy())
@@ -711,7 +711,7 @@ impl Engine {
                         } else {
                             "false".to_string()
                         }
-                    } else if let Ok(f) = value.downcast::<PyFloat>() {
+                    } else if let Ok(f) = value.cast::<PyFloat>() {
                         let f = f.value();
                         if f.fract() == 0.0 && f.is_finite() {
                             format!("{}", f as i128)
@@ -768,7 +768,7 @@ impl Engine {
                     invalid_type(id, expected, &value, st)?;
                     return Ok(value);
                 }
-                if let Ok(f) = value.downcast::<PyFloat>() {
+                if let Ok(f) = value.cast::<PyFloat>() {
                     let f = f.value();
                     if !f.is_finite() {
                         let received = if f.is_nan() {
@@ -861,10 +861,7 @@ impl Engine {
                 Ok(value)
             }
             NodeKind::NaN => {
-                if value
-                    .downcast::<PyFloat>()
-                    .is_ok_and(|f| f.value().is_nan())
-                {
+                if value.cast::<PyFloat>().is_ok_and(|f| f.value().is_nan()) {
                     return Ok(value);
                 }
                 invalid_type(id, "nan", &value, st)?;
@@ -909,7 +906,7 @@ impl Engine {
                 }
                 let saved_missing = std::mem::replace(&mut st.missing, false);
                 let mut out = Vec::with_capacity(value.len()?);
-                if let Ok(list) = value.downcast::<PyList>() {
+                if let Ok(list) = value.cast::<PyList>() {
                     let element_node = &self.nodes[*element];
                     for (i, item) in list.iter().enumerate() {
                         if Self::quick_ok(element_node, &item) {
@@ -997,7 +994,7 @@ impl Engine {
                     invalid_type(id, "object", &value, st)?;
                     return Ok(value);
                 };
-                let dict = input.downcast::<PyDict>().ok();
+                let dict = input.cast::<PyDict>().ok();
                 let out = PyDict::new(py);
                 let start = st.issues.len();
                 let saved_missing = std::mem::replace(&mut st.missing, false);
@@ -1040,7 +1037,7 @@ impl Engine {
                 // Every input key is a field when the counts match, so most inputs skip the scan.
                 if !matches!(catchall, Catchall::Strip) && input.len()? != present_fields {
                     let is_field = |key: &Bound<'py, PyAny>| {
-                        key.downcast::<PyString>()
+                        key.cast::<PyString>()
                             .ok()
                             .and_then(|k| k.to_str().ok())
                             .is_some_and(|k| fields.iter().any(|f| f.key == k))
@@ -1164,7 +1161,7 @@ impl Engine {
                     return Ok(out.into_any());
                 }
                 let entries: Vec<(Bound<'py, PyAny>, Bound<'py, PyAny>)> =
-                    if let Ok(d) = value.downcast::<PyDict>() {
+                    if let Ok(d) = value.cast::<PyDict>() {
                         d.iter().collect()
                     } else {
                         input
@@ -1435,7 +1432,7 @@ impl Engine {
                     invalid_type(id, "boolean", &value, st)?;
                     return Ok(value);
                 }
-                let Ok(s) = value.downcast::<PyString>() else {
+                let Ok(s) = value.cast::<PyString>() else {
                     invalid_type(id, "string", &value, st)?;
                     return Ok(value);
                 };
@@ -1471,16 +1468,16 @@ impl Engine {
         value: &Bound<'py, PyAny>,
         st: &State<'py>,
     ) -> PyResult<Option<Bound<'py, PyMapping>>> {
-        if let Ok(d) = value.downcast::<PyDict>() {
-            return Ok(Some(d.clone().into_any().downcast_into::<PyMapping>()?));
+        if let Ok(d) = value.cast::<PyDict>() {
+            return Ok(Some(d.clone().into_any().cast_into::<PyMapping>()?));
         }
         if let Some(base) = &self.helpers.object_base {
             if value.is_instance(base.bind(st.py))? {
                 let d = value.call_method1("to_dict", (false,))?;
-                return Ok(Some(d.downcast_into::<PyMapping>()?));
+                return Ok(Some(d.cast_into::<PyMapping>()?));
             }
         }
-        match value.downcast::<PyMapping>() {
+        match value.cast::<PyMapping>() {
             Ok(m) => Ok(Some(m.clone())),
             Err(_) => Ok(None),
         }
@@ -1704,7 +1701,7 @@ impl Engine {
             }
             CheckKind::Format { format, .. } => {
                 let text = value
-                    .downcast::<PyString>()
+                    .cast::<PyString>()
                     .map_err(|_| PyTypeError::new_err("format check on non-string"))?
                     .to_str()?;
                 if !format.is_match(text) {
@@ -1715,7 +1712,7 @@ impl Engine {
                 Ok(value)
             }
             CheckKind::Includes { needle, position } => {
-                let text = value.downcast::<PyString>()?.to_str()?;
+                let text = value.cast::<PyString>()?.to_str()?;
                 let haystack: String = text.chars().skip(*position).collect();
                 if !haystack.contains(needle.as_str()) {
                     Issue::new(st, id, "invalid_format", &value, cont)
@@ -1728,7 +1725,7 @@ impl Engine {
                 Ok(value)
             }
             CheckKind::StartsWith(prefix) => {
-                let text = value.downcast::<PyString>()?.to_str()?;
+                let text = value.cast::<PyString>()?.to_str()?;
                 if !text.starts_with(prefix.as_str()) {
                     Issue::new(st, id, "invalid_format", &value, cont)
                         .f("origin", "string")?
@@ -1740,7 +1737,7 @@ impl Engine {
                 Ok(value)
             }
             CheckKind::EndsWith(suffix) => {
-                let text = value.downcast::<PyString>()?.to_str()?;
+                let text = value.cast::<PyString>()?.to_str()?;
                 if !text.ends_with(suffix.as_str()) {
                     Issue::new(st, id, "invalid_format", &value, cont)
                         .f("origin", "string")?
@@ -1752,7 +1749,7 @@ impl Engine {
                 Ok(value)
             }
             CheckKind::Overwrite(op) => {
-                let text = value.downcast::<PyString>()?.to_str()?;
+                let text = value.cast::<PyString>()?.to_str()?;
                 let out = match op {
                     OverwriteOp::Trim => text.trim().to_string(),
                     OverwriteOp::Lower => text.to_lowercase(),
@@ -1774,7 +1771,7 @@ impl Engine {
                 fallback,
             } => {
                 let text = value
-                    .downcast::<PyString>()
+                    .cast::<PyString>()
                     .map_err(|_| PyTypeError::new_err("format check on non-string"))?
                     .to_str()?;
                 if *dollar && text.ends_with('\n') {
@@ -1837,10 +1834,10 @@ fn coerce_number_fast<'py>(value: &Bound<'py, PyAny>, bigint: bool) -> Option<Bo
     {
         return Some(value.clone());
     }
-    if let Ok(b) = value.downcast::<PyBool>() {
+    if let Ok(b) = value.cast::<PyBool>() {
         return Some(i64::from(b.is_true()).into_pyobject(py).ok()?.into_any());
     }
-    let text = value.downcast::<PyString>().ok()?.to_str().ok()?;
+    let text = value.cast::<PyString>().ok()?.to_str().ok()?;
     let digits = text.strip_prefix('-').unwrap_or(text);
     if digits.is_empty() || digits.len() > 18 || !digits.bytes().all(|b| b.is_ascii_digit()) {
         return None;
