@@ -12,7 +12,7 @@ license = "MIT"
 repository = "https://github.com/nakita628/zopy"
 
 [workspace.dependencies]
-pyo3 = "0.25"
+pyo3 = "0.29"
 pyo3-build-config = { version = "0.25", features = ["resolve-config"] }
 regex = "1.11"
 fancy-regex = "0.14"

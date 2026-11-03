@@ -253,7 +253,7 @@ impl Compiled {
     ) -> PyResult<Vec<usize>> {
         let mut pending = Vec::new();
         for (i, item) in issues.iter().enumerate() {
-            if !self.finalize_plain_dict(py, item.downcast::<PyDict>()?, report_input)? {
+            if !self.finalize_plain_dict(py, item.cast::<PyDict>()?, report_input)? {
                 pending.push(i);
             }
         }

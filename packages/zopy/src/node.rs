@@ -299,7 +299,7 @@ fn strings(d: &Bound<'_, PyDict>, key: &str) -> PyResult<Vec<String>> {
 pub fn build_nodes(nodes: &Bound<'_, PyList>) -> PyResult<Vec<Node>> {
     nodes
         .iter()
-        .map(|n| build_node(n.downcast::<PyDict>()?))
+        .map(|n| build_node(n.cast::<PyDict>()?))
         .collect()
 }
 
@@ -353,7 +353,7 @@ fn build_node(d: &Bound<'_, PyDict>) -> PyResult<Node> {
             let mut fields = Vec::new();
             for f in get(d, "fields")?.try_iter()? {
                 let f = f?;
-                let name: Bound<'_, PyString> = f.get_item(0)?.downcast_into()?;
+                let name: Bound<'_, PyString> = f.get_item(0)?.cast_into()?;
                 let node: usize = f.get_item(1)?.extract()?;
                 let optin = match f.get_item(2)?.extract::<Option<String>>()?.as_deref() {
                     Some("optional") => Rung::Optional,
@@ -425,7 +425,7 @@ fn build_node(d: &Bound<'_, PyDict>) -> PyResult<Node> {
                 options.push((values, o.get_item(1)?.extract()?));
             }
             NodeKind::Discriminated {
-                disc: get(d, "disc")?.downcast_into::<PyString>()?.unbind(),
+                disc: get(d, "disc")?.cast_into::<PyString>()?.unbind(),
                 options,
                 all: get_objs(d, "all")?,
                 fallback: get_bool(d, "fallback")?,
@@ -479,7 +479,7 @@ fn build_node(d: &Bound<'_, PyDict>) -> PyResult<Node> {
     let checks = match opt(d, "checks")? {
         Some(list) => list
             .try_iter()?
-            .map(|c| build_check(c?.downcast::<PyDict>()?))
+            .map(|c| build_check(c?.cast::<PyDict>()?))
             .collect::<PyResult<Vec<_>>>()?,
         None => Vec::new(),
     };
@@ -517,7 +517,7 @@ fn build_check(d: &Bound<'_, PyDict>) -> PyResult<Check> {
             let name = get_str(d, "format")?;
             let mut fo = FormatOptions::default();
             if let Some(o) = opt(d, "opts")? {
-                let o = o.downcast::<PyDict>()?;
+                let o = o.cast::<PyDict>()?;
                 fo.version = opt(o, "version")?.map(|v| v.extract()).transpose()?;
                 fo.precision = opt(o, "precision")?.map(|v| v.extract()).transpose()?;
                 fo.offset = get_bool(o, "offset")?;
@@ -531,7 +531,7 @@ fn build_check(d: &Bound<'_, PyDict>) -> PyResult<Check> {
             })?;
             let mut extra = Vec::new();
             if let Some(e) = opt(d, "extra")? {
-                for (key, value) in e.downcast::<PyDict>()?.iter() {
+                for (key, value) in e.cast::<PyDict>()?.iter() {
                     extra.push((key.extract::<String>()?, value.unbind()));
                 }
             }

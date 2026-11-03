@@ -68,7 +68,7 @@ fn text(issue: &Bound<'_, PyDict>, key: &Bound<'_, PyString>) -> Option<String> 
         return None;
     }
     value
-        .downcast::<PyString>()
+        .cast::<PyString>()
         .ok()?
         .to_str()
         .ok()
@@ -90,7 +90,7 @@ fn parsed_type(value: &Bound<'_, PyAny>, date_types: &Bound<'_, PyAny>) -> Optio
         "boolean"
     } else if value.is_instance_of::<PyInt>() {
         "number"
-    } else if let Ok(f) = value.downcast::<PyFloat>() {
+    } else if let Ok(f) = value.cast::<PyFloat>() {
         if f.value().is_nan() {
             "NaN"
         } else {
@@ -113,7 +113,7 @@ fn parsed_type(value: &Bound<'_, PyAny>, date_types: &Bound<'_, PyAny>) -> Optio
 
 /// `_util.format_number` (dates are left to Python).
 fn format_number(value: &Bound<'_, PyAny>) -> Option<String> {
-    if let Ok(f) = value.downcast::<PyFloat>() {
+    if let Ok(f) = value.cast::<PyFloat>() {
         let f = f.value();
         if f.is_finite() && f.fract() == 0.0 {
             // Python prints `str(int(value))`; beyond 2**53 leave the digits to Python.
@@ -134,7 +134,7 @@ fn format_number(value: &Bound<'_, PyAny>) -> Option<String> {
 
 /// `_util.stringify` for `str` values: `json.dumps(value, ensure_ascii=False)`.
 fn stringify_str(value: &Bound<'_, PyAny>) -> Option<String> {
-    let s = value.downcast::<PyString>().ok()?.to_str().ok()?;
+    let s = value.cast::<PyString>().ok()?.to_str().ok()?;
     serde_json::to_string(s).ok()
 }
 
@@ -143,13 +143,13 @@ fn stringify(value: &Bound<'_, PyAny>) -> Option<String> {
     if value.is_none() {
         return Some("undefined".to_owned());
     }
-    if let Ok(b) = value.downcast::<PyBool>() {
+    if let Ok(b) = value.cast::<PyBool>() {
         return Some(if b.is_true() { "true" } else { "false" }.to_owned());
     }
     if value.is_instance_of::<PyString>() {
         return stringify_str(value);
     }
-    if let Ok(f) = value.downcast::<PyFloat>() {
+    if let Ok(f) = value.cast::<PyFloat>() {
         let f = f.value();
         return if f.is_nan() {
             Some("NaN".to_owned())
@@ -182,7 +182,7 @@ fn size_message(issue: &Bound<'_, PyDict>, big: bool) -> Option<String> {
         ">"
     };
     let origin = match issue.get_item(key!(issue, "origin")).ok()? {
-        Some(o) if o.is_truthy().ok()? => o.downcast::<PyString>().ok()?.to_str().ok()?.to_owned(),
+        Some(o) if o.is_truthy().ok()? => o.cast::<PyString>().ok()?.to_str().ok()?.to_owned(),
         _ => "value".to_owned(),
     };
     let bound = format_number(
@@ -209,7 +209,7 @@ pub fn en_message(
     date_types: &Bound<'_, PyAny>,
 ) -> Option<String> {
     let code = issue.get_item(key!(issue, "code")).ok()??;
-    match code.downcast::<PyString>().ok()?.to_str().ok()? {
+    match code.cast::<PyString>().ok()?.to_str().ok()? {
         "invalid_type" => {
             let expected = text(issue, key!(issue, "expected"))?;
             let received = match issue
@@ -217,7 +217,7 @@ pub fn en_message(
                 .ok()?
                 .filter(|r| !r.is_none())
             {
-                Some(r) => r.downcast::<PyString>().ok()?.to_str().ok()?.to_owned(),
+                Some(r) => r.cast::<PyString>().ok()?.to_str().ok()?.to_owned(),
                 None => parsed_type(input?, date_types)?.to_owned(),
             };
             Some(format!(
@@ -258,7 +258,7 @@ pub fn en_message(
         "invalid_value" => {
             let values = issue.get_item(key!(issue, "values")).ok()??;
             let parts = values
-                .downcast::<PyList>()
+                .cast::<PyList>()
                 .ok()?
                 .iter()
                 .map(|v| stringify(&v))
@@ -274,7 +274,7 @@ pub fn en_message(
         )),
         "unrecognized_keys" => {
             let keys = issue.get_item(key!(issue, "keys")).ok()??;
-            let keys = keys.downcast::<PyList>().ok()?;
+            let keys = keys.cast::<PyList>().ok()?;
             let parts = keys
                 .iter()
                 .map(|k| stringify_str(&k))
