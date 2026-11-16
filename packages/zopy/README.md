@@ -972,4 +972,3 @@ The code blocks in this README are executed by the test suite, so the examples s
 ## License
 
 [MIT](LICENSE)
-# zopy
